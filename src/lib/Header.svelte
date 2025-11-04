@@ -48,6 +48,9 @@
     .wrapper > input {
       border: none !important;
     }
+    input:placeholder-shown {
+      opacity: 0;
+    }
   }
   .wrapper {
     border-bottom: 2px solid var(--btn-high);

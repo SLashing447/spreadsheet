@@ -5,7 +5,7 @@
     toggleTheme,
     getCellElement,
     getFilteredData,
-    toggleHeaderWrap,
+    toggleWrapper,
     saveGridInDb,
     loadGridFromDb,
   } from "../utils/utils";
@@ -18,6 +18,7 @@
     msg,
     previewMode,
     SIGN,
+    type WrapperCommands,
   } from "../utils/values";
 
   import Toolbar from "./Toolbar.svelte";
@@ -31,17 +32,10 @@
 
   let activeCell = $state<HTMLDivElement | null>(null);
 
-  function cellCommands(cmd: string) {
+  function cellCommands(cmd: WrapperCommands) {
     if (!activeCell) return;
 
-    if (cmd === "bold" || cmd === "italic" || cmd === "underline") {
-      document.execCommand(cmd, false, undefined);
-      activeCell?.focus();
-    }
-
-    if (cmd === "h") {
-      toggleHeaderWrap(activeCell as HTMLElement);
-    }
+    toggleWrapper(activeCell, cmd);
   }
 
   function handleFocus(event: FocusEvent) {
@@ -82,7 +76,7 @@
 
       if (cell) {
         cell.innerHTML = val || "";
-        if (val) toggleHeaderWrap(cell as HTMLElement, true);
+        if (val) toggleWrapper(cell as HTMLElement, "he", true);
       }
     }
 
@@ -104,7 +98,7 @@
 
     let cells = document.querySelectorAll(".cell");
     cells.forEach((cell) => {
-      toggleHeaderWrap(cell as HTMLElement);
+      toggleWrapper(cell as HTMLElement, "he");
       cell.innerHTML = "";
     });
     hasIndex.set(false);
@@ -125,7 +119,6 @@
   }
 
   function closePreview() {
-    // loadCSVintoGrid(printData);
     previewMode.set(false);
     toggleTheme(localStorage.getItem("theme")); // toggle to wtv was before
 
@@ -159,7 +152,7 @@
     if (e.key === "Enter" && e.shiftKey) {
       e.preventDefault();
       if (activeCell) grid[1] = grid[1] + 1;
-      // console.log("Escape pressed!");
+
       return;
     }
 
@@ -357,10 +350,9 @@
     max-width: 100%;
 
     overflow: auto;
-    max-height: 90vh;
+    max-height: 88vh;
 
     background-color: transparent;
-    margin-bottom: 1rem;
   }
   .row-head {
     display: flex;
@@ -373,6 +365,8 @@
   .row-head {
     user-select: none;
     cursor: default;
+    color: grey;
+    opacity: 0.5;
   }
   .col-head {
     display: flex;

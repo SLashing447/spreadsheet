@@ -8,3 +8,5 @@ export const isDarkTheme = writable<boolean>(true);
 export const FileHeaders = writable<string[]>(["", "", ""]);
 export const lastSaved = writable<number | null>(null);
 export const msg = writable<string | null>(null);
+
+export type WrapperCommands = "b" | "u" | "i" | "he" | "ce";

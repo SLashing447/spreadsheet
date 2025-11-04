@@ -4,10 +4,12 @@ import {
   hasIndex,
   isDarkTheme,
   lastSaved,
-  msg,
   SIGN,
+  type WrapperCommands,
 } from "./values";
 import { getDbItem, setDbItem } from "./db";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeTextFile } from "@tauri-apps/plugin-fs";
 
 export function getFilteredData(
   hasIndexing: boolean = false
@@ -137,43 +139,53 @@ export function formatTimestamp(ts: number | undefined | null): string {
   return `${day}/${month}/${year} ${hours}:${minutes}:${seconds} ${ampm}`;
 }
 
-export function toggleHeaderWrap(el: HTMLElement, always?: boolean) {
-  const firstChild = el.firstElementChild;
+export function toggleWrapper(
+  el: HTMLElement,
+  name: WrapperCommands,
+  always?: boolean
+) {
+  const tag = name.trim().toLowerCase();
+  if (!tag) return;
 
-  const wrap = () => {
-    const greet = document.createElement("he");
+  const first = el.firstChild;
 
-    // Move all current children into <greet>
-    while (el.firstChild) {
-      greet.appendChild(el.firstChild);
-    }
-
-    el.appendChild(greet);
-  };
-
+  // Always: unconditionally wrap the immediate child
   if (always) {
-    wrap();
+    if (!first) return;
+    const wrapper = document.createElement(tag);
+    el.insertBefore(wrapper, first);
+    wrapper.appendChild(first);
     return;
   }
 
-  // --- UNWRAP if already wrapped ---
-  if (firstChild && firstChild.tagName.toLowerCase() === "he") {
-    const greetEl = firstChild as HTMLElement;
-    const fragment = document.createDocumentFragment();
+  // Toggle: if any descendant <name> exists, unwrap all of them
+  const matches = el.querySelectorAll(tag);
+  if (matches.length > 0) {
+    Array.from(matches)
+      .reverse()
+      .forEach((node) => {
+        const parent = node.parentNode;
+        if (!parent) return;
 
-    // Move all children of <greet> out
-    while (greetEl.firstChild) {
-      fragment.appendChild(greetEl.firstChild);
-    }
+        // Move children out before the node
+        while (node.firstChild) {
+          parent.insertBefore(node.firstChild, node);
+        }
 
-    // Replace <greet> with its content
-    el.replaceChild(fragment, greetEl);
+        // Remove the now-empty wrapper
+        parent.removeChild(node);
+      });
+
+    // Merge adjacent text nodes created during unwrapping
+    el.normalize();
+    return;
   }
 
-  // --- WRAP innerHTML ---
-  else {
-    wrap();
-  }
+  // Otherwise, wrap the immediate child
+  if (!first) return;
+  const wrapper = document.createElement(tag);
+  el.insertBefore(wrapper, first);
+  wrapper.appendChild(first);
 }
 
 export function createMd(): string[] {
@@ -229,4 +241,16 @@ export function loadGridFromDb(): Promise<[string[][], number]> {
       reject(e);
     }
   });
+}
+
+export async function saveCSV(csv: string, fileName = "bill.csv") {
+  const chosen = await save({
+    title: "Save CSV file",
+    filters: [{ name: "CSV", extensions: ["csv"] }],
+    defaultPath: fileName,
+  });
+  if (!chosen) return;
+
+  const path = chosen.endsWith(".csv") ? chosen : `${chosen}.csv`;
+  await writeTextFile(path, csv); // path is auto-scoped by dialog.save
 }

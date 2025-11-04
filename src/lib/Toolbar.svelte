@@ -5,6 +5,7 @@
     getFilteredData,
     formatTimestamp,
     createMd,
+    saveCSV,
   } from "../utils/utils";
   import {
     hasIndex,
@@ -12,13 +13,14 @@
     lastSaved,
     msg,
     previewMode,
+    type WrapperCommands,
   } from "../utils/values";
   import Papa from "papaparse";
 
   interface props {
     loadCSVintoGrid: (data: string[][]) => void;
     clearGrid: () => void;
-    cmd: (data: string) => void;
+    cmd: (data: WrapperCommands) => void;
     previewGrid: () => void;
     closePreview: () => void;
   }
@@ -32,8 +34,9 @@
     closePreview,
   }: props = $props();
   let fileInput: HTMLInputElement | null = $state(null);
+  let fileName: string | null = $state(null);
 
-  function exportToCSV() {
+  async function exportToCSV() {
     const md = createMd();
     const filtered = getFilteredData($hasIndex);
 
@@ -45,23 +48,15 @@
     filtered.unshift(md);
     const csv = Papa.unparse(filtered);
 
-    // Create a Blob and trigger download
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "bill.csv";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    // downloadCsvFromCustom(filtered);
+    await saveCSV(csv);
   }
 
   function getCSV(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
+
+    fileName = file.name;
 
     Papa.parse(file, {
       header: false,
@@ -89,68 +84,81 @@
 
 <div class="file-controls no-print">
   {#if !$previewMode}
-    <div>
-      <div>
-        <button onclick={() => fileInput?.click()} class="upload-btn">
-          📁
-        </button>
+    <div class="cntrl">
+      <button
+        title="Load File"
+        onclick={() => fileInput?.click()}
+        class="upload-btn"
+      >
+        📁
+      </button>
 
-        <button onclick={exportToCSV} class="export-btn"> 💾 </button>
+      <button title="Save File" onclick={exportToCSV} class="export-btn">
+        💾
+      </button>
 
-        <button onclick={prntSetup} class="upload-btn"> 🖨️ </button>
+      <button title="Print File" onclick={prntSetup} class="upload-btn">
+        🖨️
+      </button>
 
-        <button onclick={clearGrid} class="clear-btn"> 🧹 </button>
-        <input
-          type="file"
-          accept=".csv"
-          bind:this={fileInput}
-          onchange={getCSV}
-          style="display: none;"
-        />
-      </div>
+      <button title="Clear" onclick={clearGrid} class="clear-btn"> 🧹 </button>
+      <input
+        type="file"
+        accept=".csv"
+        bind:this={fileInput}
+        onchange={getCSV}
+        style="display: none;"
+      />
+
       <span></span>
-      <div>
-        <button onclick={() => cmd("bold")} class="B">B</button>
-        <button onclick={() => cmd("italic")} class="I">I</button>
-        <button onclick={() => cmd("underline")} class="U">U</button>
-      </div>
-      <span></span>
-      <div>
-        <button onclick={calcIndexing}>
-          {#if $hasIndex}
-            Indexing:ON
-          {:else}
-            Indexing:OFF
-          {/if}
-        </button>
 
-        <button onclick={() => toggleTheme()}>
-          {#if !$isDarkTheme}
-            Dark
-          {:else}
-            Light
-          {/if}
-        </button>
+      <button onclick={() => cmd("b")} class="B">B</button>
+      <button onclick={() => cmd("i")} class="I">I</button>
+      <button onclick={() => cmd("u")} class="U">U</button>
+      <button onclick={() => cmd("ce")}>C</button>
 
-        <button onclick={() => cmd("h")}>Header</button>
-      </div>
       <span></span>
-      <div>
-        <button class="wipe" onclick={async () => await clearDb()}>
-          Wipe Memory
-        </button>
-      </div>
+
+      <button onclick={calcIndexing}>
+        {#if $hasIndex}
+          Indexing:ON
+        {:else}
+          Indexing:OFF
+        {/if}
+      </button>
+
+      <button onclick={() => toggleTheme()}>
+        {#if !$isDarkTheme}
+          Dark
+        {:else}
+          Light
+        {/if}
+      </button>
+
+      <button onclick={() => cmd("he")}>Header</button>
+
+      <span></span>
+
+      <button class="wipe" onclick={async () => await clearDb()}>
+        Wipe Memory
+      </button>
     </div>
-    <div class="msgs">
-      {#if $msg}
-        <div class="msg">
-          {$msg}
-        </div>
-      {/if}
-      {#if $lastSaved}
-        <div class="lsaved">
-          {formatTimestamp($lastSaved)} - saved
-        </div>
+    <div class="info">
+      <div>
+        {#if $lastSaved}
+          <div class="lsaved">
+            {formatTimestamp($lastSaved)}
+          </div>
+        {/if}
+
+        {#if $msg}
+          <div class="msg">
+            {$msg}
+          </div>
+        {/if}
+      </div>
+      {#if fileName}
+        <div class="file-name">{fileName}</div>
       {/if}
     </div>
   {:else}
@@ -173,16 +181,23 @@
     gap: 0.5rem;
   }
   .msg {
-    font-family: monospace;
-    font-size: 16px;
+    font-size: 13px;
     font-variant: small-caps;
     color: rgb(16, 201, 182);
     font-weight: bold;
     user-select: none;
   }
+  .file-name {
+    font-size: 13px;
+
+    font-weight: bold;
+    user-select: none;
+    font-style: italic;
+  }
   span {
     padding: 0 0.1rem;
-
+    height: 20px;
+    width: 0.4px;
     background-color: var(--header);
   }
   .wipe {
@@ -201,8 +216,9 @@
   .file-controls {
     display: flex;
     justify-content: space-between;
+    flex-direction: column-reverse;
     width: 100%;
-    gap: 0.4rem;
+    gap: 0.6rem;
     padding: 0.4rem;
     margin: 0.2rem 0;
   }
@@ -215,14 +231,22 @@
   .U {
     text-decoration: underline;
   }
-  .file-controls > div:first-child {
+  .cntrl {
     display: flex;
     gap: 0.5rem;
   }
-  .msgs {
+
+  .info > div {
     display: flex;
-    justify-content: center;
+    gap: 0.5rem;
     align-items: center;
+  }
+  .info {
+    width: 100%;
+
+    display: flex;
+    justify-content: space-between;
+
     gap: 0.5rem;
   }
   button {

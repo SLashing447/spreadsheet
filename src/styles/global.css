@@ -9,11 +9,17 @@
 .cell:has(he),
 .print-table td:has(he),
 .idx:has(he) {
+  color: lightgray !important;
+
   background-color: var(--header) !important;
 }
 he {
   font-weight: bolder;
   color: lightgray !important;
+}
+.print-table td:has(ce),
+.cell:has(ce) {
+  text-align: center;
 }
 
 :root {
@@ -38,4 +44,29 @@ body {
 
   align-items: center;
   padding: 0 0.5rem;
+}
+
+/* Minimal Modern Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--btn);
+  border-radius: 10px;
+  transition: background-color 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--btn-high);
+}
+/* Firefox support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--btn) transparent;
 }
