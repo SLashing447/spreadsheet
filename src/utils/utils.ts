@@ -260,10 +260,10 @@ export function cellsToFillScreen(
   cellHeight: number = 38
 ): number[] {
   const screenWidth = window.innerWidth;
-  const screenHeight = window.innerHeight;
+  const screenHeight = window.innerHeight - 150;
 
   const cellsPerRow = Math.floor(screenWidth / cellWidth);
   const cellsPerCol = Math.floor(screenHeight / cellHeight);
 
-  return [cellsPerRow, cellsPerCol-3];
+  return [cellsPerRow-1, cellsPerCol ];
 }

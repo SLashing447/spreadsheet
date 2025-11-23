@@ -25,7 +25,7 @@
   import Toolbar from "./Toolbar.svelte";
   import Header from "../lib/Header.svelte";
 
-  const grid = $state(cellsToFillScreen()); // cols & rows
+  let grid = $state(cellsToFillScreen()); // cols & rows
 
   // let ggg = ;
 
@@ -223,6 +223,11 @@
   loadGridFromDb().then(([data, ls]) => {
     loadCSVintoGrid(data);
     lastSaved.set(ls);
+  });
+
+  window.addEventListener("resize", () => {
+    const cells = cellsToFillScreen();
+    grid = cells;
   });
 </script>
 

@@ -38,6 +38,7 @@ html,
 body {
   background-color: var(--bg);
   height: 100vh;
+  overflow-x: hidden;
 }
 #app {
   display: flex;

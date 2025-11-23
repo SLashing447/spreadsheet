@@ -58,7 +58,7 @@
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    padding: 0.5rem 1rem;
+    padding: 0.3rem 1rem;
   }
 
   .wrapper > input {
