@@ -9,10 +9,11 @@
 .cell:has(he),
 .print-table td:has(he),
 .idx:has(he) {
-  color: lightgray !important;
+  /* color: lightgray !important; */
 
   background-color: var(--header) !important;
 }
+
 he {
   font-weight: bolder;
   color: lightgray !important;

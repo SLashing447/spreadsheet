@@ -8,6 +8,7 @@
     toggleWrapper,
     saveGridInDb,
     loadGridFromDb,
+    cellsToFillScreen,
   } from "../utils/utils";
   import { sum2DLines } from "../utils/math";
 
@@ -24,7 +25,9 @@
   import Toolbar from "./Toolbar.svelte";
   import Header from "../lib/Header.svelte";
 
-  const grid = $state([20, 10]); // cols & rows
+  const grid = $state(cellsToFillScreen()); // cols & rows
+
+  // let ggg = ;
 
   let gridContainer: HTMLDivElement | null = $state(null);
 
@@ -106,9 +109,8 @@
 
   function previewGrid() {
     const filtered = getFilteredData($hasIndex);
-
     if (!filtered) {
-      alert("Grid is empty");
+      console.error("Grid Data is undefined");
       return;
     }
 
@@ -133,7 +135,6 @@
     let args = cmd.split(" ");
 
     let fn = args[0];
-
     const block = exBlockSel(args[1], args[2]);
     if (block === undefined) return;
 
@@ -149,26 +150,30 @@
   }
 
   function onKeyDown(e: KeyboardEvent) {
-    if (e.key === "Enter" && e.shiftKey) {
-      e.preventDefault();
-      if (activeCell) grid[1] = grid[1] + 1;
+    const key = e.key;
 
+    if (key !== "Enter") {
+      if (activeCell) {
+        let row = Number(activeCell.getAttribute("data-row"));
+        if (grid[1] - row <= 2) {
+          grid[1] = grid[1] + 2;
+        }
+      }
       return;
     }
 
-    if (e.key === "Enter" && e.ctrlKey) {
+    if (key === "Enter" && e.ctrlKey) {
       if (!activeCell) return;
       let row = Number(activeCell.getAttribute("data-row"));
-      let col = Number(activeCell.getAttribute("data-col"));
 
       let _row = row + 1;
 
-      let cell = getCellElement(_row, col);
+      let cell = getCellElement(_row, 0);
       if (cell) cell.focus();
 
       return;
     }
-    if (e.key === "Enter") {
+    if (key === "Enter") {
       e.preventDefault();
 
       let isCmd = checkForUserCmd();
@@ -198,7 +203,7 @@
   }
 
   function handleKeydown(e: KeyboardEvent) {
-    const key = e.key;
+    const key = e.key.toLocaleLowerCase();
     if (key === "s" && e.ctrlKey) {
       e.preventDefault();
       msg.set("Saving... ");

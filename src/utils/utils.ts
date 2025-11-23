@@ -59,7 +59,7 @@ export function getFilteredData(
     }
   }
 
-  // console.log(out);
+  console.log(out);
 
   return out;
 }
@@ -253,4 +253,17 @@ export async function saveCSV(csv: string, fileName = "bill.csv") {
 
   const path = chosen.endsWith(".csv") ? chosen : `${chosen}.csv`;
   await writeTextFile(path, csv); // path is auto-scoped by dialog.save
+}
+
+export function cellsToFillScreen(
+  cellWidth: number = 80,
+  cellHeight: number = 38
+): number[] {
+  const screenWidth = window.innerWidth;
+  const screenHeight = window.innerHeight;
+
+  const cellsPerRow = Math.floor(screenWidth / cellWidth);
+  const cellsPerCol = Math.floor(screenHeight / cellHeight);
+
+  return [cellsPerRow, cellsPerCol-3];
 }

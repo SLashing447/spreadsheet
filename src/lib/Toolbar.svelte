@@ -127,15 +127,7 @@
         {/if}
       </button>
 
-      <button onclick={() => toggleTheme()}>
-        {#if !$isDarkTheme}
-          Dark
-        {:else}
-          Light
-        {/if}
-      </button>
-
-      <button onclick={() => cmd("he")}>Header</button>
+      <button onclick={() => cmd("he")}>Highlight</button>
 
       <span></span>
 
@@ -196,7 +188,7 @@
   }
   span {
     padding: 0 0.1rem;
-    height: 20px;
+    height: 25px;
     width: 0.4px;
     background-color: var(--header);
   }
